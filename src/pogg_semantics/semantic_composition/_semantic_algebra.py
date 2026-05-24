@@ -536,7 +536,7 @@ class SemanticAlgebra:
         """
 
         # duplicate sement to avoid editing the original
-        unprepared_sement = POGGSEMENTUtil.duplicate_sement(sement)
+        unprepared_sement = SEMENTUtil.duplicate_sement(sement)
 
 
         # TODO: i can't get "the cat probably sleeps" bc the top lvl INDEX is i
@@ -545,7 +545,7 @@ class SemanticAlgebra:
         # TODO: i guess this depends tho like why the hell is probably's 'i' okay as the top level INDEX is that even real
         if sement.index[0] != "e":
             # check if quantified, wrap in one if not
-            if not POGGSEMENTUtil.check_if_quantified(unprepared_sement):
+            if not SEMENTUtil.check_if_quantified(unprepared_sement):
                 # if the top level predicate is "named," use "proper_q"
                 quant_sement = None
                 for rel in unprepared_sement.rels:
@@ -595,7 +595,7 @@ class SemanticAlgebra:
                 e_type_sement.eqs.append((new_h, hcon.lo))
                 e_type_sement.variables[new_h] = {}
 
-        final_sement = POGGSEMENTUtil.overwrite_eqs(e_type_sement)
+        final_sement = SEMENTUtil.overwrite_eqs(e_type_sement)
         return final_sement
 
     # @SemAlgTracer.trace
@@ -604,7 +604,7 @@ class SemanticAlgebra:
     #     # return a new SEMENT that can participate in composition
     #
     #     # duplicate because i don't like modifying arguments...
-    #     updated_mrs = POGGSEMENTUtil.duplicate_sement(mrs)
+    #     updated_mrs = SEMENTUtil.duplicate_sement(mrs)
     #
     #     # strip the GTOP if present
     #     hcons_to_remove = None
@@ -617,7 +617,7 @@ class SemanticAlgebra:
     #     updated_mrs.hcons.remove(hcons_to_remove)
     #
     #     # delete "unknown" predicate if present
-    #     key_rel = POGGSEMENTUtil.get_key_rel(updated_mrs)
+    #     key_rel = SEMENTUtil.get_key_rel(updated_mrs)
     #
     #     if key_rel.predicate == "unknown":
     #         hcons_to_remove = None
