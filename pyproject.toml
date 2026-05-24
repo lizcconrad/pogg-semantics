@@ -1,0 +1,118 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pogg_semantics"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Elizabeth C. Conrad", email = "lizcconrad@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "pydelphin>=1.9.1"
+]
+
+
+[project.urls]
+Documentation = "https://github.com/lizcconrad/pogg-semantics#readme"
+Issues = "https://github.com/lizcconrad/pogg-semantics/issues"
+Source = "https://github.com/lizcconrad/pogg-semantics"
+
+[tool.hatch.version]
+path = "src/pogg_semantics/__about__.py"
+
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0"
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/pogg_semantics tests}"
+
+# workaround for pycharm for now ...?
+[tool.hatch.envs.default]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_semantics_default"
+
+# docs environment
+# inherits from default by default
+[tool.hatch.envs.docs]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_semantics_docs"
+dependencies = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "sphinx-book-theme",
+  "sphinx-autobuild",
+  "sphinx-design",
+  "myst-nb",
+  "sphinx-autodoc2",
+  "mystmd",
+  "jupyterlab",
+  "jupyterlab_myst",
+  "sphinx-togglebutton"
+]
+[tool.hatch.envs.docs.scripts]
+build = "make html"
+clean = "make clean"
+cleanbuild = "make clean & make html"
+autobuild = "sphinx-autobuild source build/html"
+
+# test environment
+# inherits from default by default
+[tool.hatch.envs.tests]
+type = "virtual"
+path = "/Users/lizcconrad/.venvs/pogg_semantics_tests"
+# default dependencies for hatch-test but pycharm doesn't get along with hatch so i'm making it myself
+dependencies = [
+  "coverage-enable-subprocess==1.0",
+  "coverage[toml]~=7.4",
+  "pytest~=8.1",
+  "pytest-mock~=3.12",
+  "pytest-randomly~=3.15",
+  "pytest-rerunfailures~=14.0",
+  "pytest-xdist[psutil]~=3.5",
+  "pytest-cases"
+]
+
+[tool.coverage.run]
+source_pkgs = ["pogg_semantics", "tests"]
+#source_pkgs = ["pogg"]
+branch = true
+parallel = true
+omit = [
+  "src/pogg_semantics/__about__.py",
+]
+
+[tool.coverage.paths]
+pogg_semantics = ["src/pogg_semantics", "*/pogg_semantics/src/pogg_semantics"]
+tests = ["tests", "*/pogg_semantics/tests"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+omit = [
+  "*/src/pogg/__about__.py",
+  "*/__init__.py",
+  "*/tests/*"
+]
