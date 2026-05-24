@@ -5,10 +5,10 @@ The `base_constructions` module contains the Mixin class for creating SEMENTs fr
 """
 
 from delphin import mrs
-from pogg.my_delphin.my_delphin import SEMENT
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
-from pogg.semantic_composition.call_tracer import SemCompTracer
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.semantic_composition._sement_util import SEMENTUtil
+from pogg_semantics.semantic_composition._call_tracer import SemCompTracer
 
 class BaseConstructionsMixin:
     """
@@ -19,7 +19,7 @@ class BaseConstructionsMixin:
     #     verb_SEMENT = self.verb(verb_predicate, {"PROG": "+"})
     #
     #     # check that modifying noun is quantified
-    #     if not POGGSEMENTUtil.check_if_quantified(modifying_noun):
+    #     if not SEMENTUtil.check_if_quantified(modifying_noun):
     #         quantified_modifying_noun = self.quantify_generic(modifying_noun)
     #     else:
     #         quantified_modifying_noun = modifying_noun
@@ -42,12 +42,12 @@ class BaseConstructionsMixin:
     def ARG1_relative_clause(self,  verb_SEMENT: SEMENT, ARG1_SEMENT: SEMENT, ARG2_SEMENT: SEMENT=None):
         # :(
         # add TENSE: tensed to verb_SEMENT
-        POGGSEMENTUtil.add_intrinsic_variable_property(verb_SEMENT, "TENSE", "tensed")
+        SEMENTUtil.add_intrinsic_variable_property(verb_SEMENT, "TENSE", "tensed")
 
         if ARG2_SEMENT is None:
             verb_and_ARG2 = verb_SEMENT
         else:
-            if not POGGSEMENTUtil.check_if_quantified(ARG2_SEMENT):
+            if not SEMENTUtil.check_if_quantified(ARG2_SEMENT):
                 quantified_ARG2 = self.quantify_generic(ARG2_SEMENT)
             else:
                 quantified_ARG2 = ARG2_SEMENT
@@ -59,12 +59,12 @@ class BaseConstructionsMixin:
     def ARG2_relative_clause(self, verb_SEMENT: SEMENT, ARG2_SEMENT: SEMENT, ARG1_SEMENT: SEMENT=None):
         # :(
         # add TENSE: tensed to verb_SEMENT
-        POGGSEMENTUtil.add_intrinsic_variable_property(verb_SEMENT, "TENSE", "tensed")
+        SEMENTUtil.add_intrinsic_variable_property(verb_SEMENT, "TENSE", "tensed")
 
         if ARG1_SEMENT is None:
             verb_and_ARG1 = verb_SEMENT
         else:
-            if not POGGSEMENTUtil.check_if_quantified(ARG1_SEMENT):
+            if not SEMENTUtil.check_if_quantified(ARG1_SEMENT):
                 quantified_ARG1 = self.quantify_generic(ARG1_SEMENT)
             else:
                 quantified_ARG1 = ARG1_SEMENT
@@ -94,7 +94,7 @@ class BaseConstructionsMixin:
 
     @SemCompTracer.trace
     def nonrestrictive_adjectival_relative_clause(self, adjective_SEMENT: SEMENT, nominal_SEMENT: SEMENT):
-        POGGSEMENTUtil.add_intrinsic_variable_property(adjective_SEMENT, "TENSE", "tensed")
+        SEMENTUtil.add_intrinsic_variable_property(adjective_SEMENT, "TENSE", "tensed")
         return self.semantic_algebra.op_non_scopal_argument_hook_slots(adjective_SEMENT, nominal_SEMENT, "ARG1")
 
     @SemCompTracer.trace
@@ -143,15 +143,15 @@ class BaseConstructionsMixin:
         }
 
         # add [ TENSE: tensed ] to negated_SEMENT
-        POGGSEMENTUtil.add_intrinsic_variable_property(negated_SEMENT, "TENSE", "tensed")
+        SEMENTUtil.add_intrinsic_variable_property(negated_SEMENT, "TENSE", "tensed")
 
         neg = self.semantic_algebra.create_base_SEMENT("neg", {'TENSE': 'tensed'}, neg_synopsis)
         return self.semantic_algebra.op_scopal_functor_index_argument_slots(neg, negated_SEMENT, "ARG1")
 
     @SemCompTracer.trace
     def object_of_noun(self, head_noun_SEMENT: SEMENT, object_noun_SEMENT: SEMENT):
-        if not POGGSEMENTUtil.check_if_quantified(object_noun_SEMENT):
-            if not POGGSEMENTUtil.check_if_quantified(object_noun_SEMENT):
+        if not SEMENTUtil.check_if_quantified(object_noun_SEMENT):
+            if not SEMENTUtil.check_if_quantified(object_noun_SEMENT):
                 quantified_object = self.quantify_generic(object_noun_SEMENT)
             else:
                 quantified_object = object_noun_SEMENT
@@ -161,7 +161,7 @@ class BaseConstructionsMixin:
     @SemCompTracer.trace
     def object_of_verb(self, verb_SEMENT: SEMENT, object_SEMENT: SEMENT) -> SEMENT:
         # check if ground is quantified and quantify generically if not
-        if not POGGSEMENTUtil.check_if_quantified(object_SEMENT):
+        if not SEMENTUtil.check_if_quantified(object_SEMENT):
             quantified_object = self.quantify_generic(object_SEMENT)
         else:
             quantified_object = object_SEMENT
@@ -187,7 +187,7 @@ class BaseConstructionsMixin:
     @SemCompTracer.trace
     def subject_of_verb(self, verb_SEMENT: SEMENT, subject_SEMENT: SEMENT) -> SEMENT:
         # check if ground is quantified and quantify generically if not
-        if not POGGSEMENTUtil.check_if_quantified(subject_SEMENT):
+        if not SEMENTUtil.check_if_quantified(subject_SEMENT):
             quantified_subject = self.quantify_generic(subject_SEMENT)
         else:
             quantified_subject = subject_SEMENT
@@ -197,7 +197,7 @@ class BaseConstructionsMixin:
     @SemCompTracer.trace
     def passive_participle_modifier(self, participle_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
         # add variable property [PERF -] per https://delphinqa.ling.washington.edu/t/constraining-passive-participles/1156
-        POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PERF", "-")
+        SEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PERF", "-")
 
         # e.g. "broken window"
         passive_SEMENT = self.semantic_algebra.op_non_scopal_argument_hook_slots(participle_SEMENT, modified_SEMENT, "ARG2")
@@ -213,7 +213,7 @@ class BaseConstructionsMixin:
     def present_participle_modifier(self, participle_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
         # e.g. "glowing flower"
         # make sure index of participle_SEMENT has PROG: +
-        POGGSEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PROG", "+")
+        SEMENTUtil.add_intrinsic_variable_property(participle_SEMENT, "PROG", "+")
         return self.semantic_algebra.op_non_scopal_argument_hook_slots(participle_SEMENT, modified_SEMENT, "ARG1")
 
     @SemCompTracer.trace
@@ -239,7 +239,7 @@ class BaseConstructionsMixin:
         preposition_SEMENT = self.preposition(preposition_predicate)
 
         # check if ground is quantified and quantify generically if not
-        if not POGGSEMENTUtil.check_if_quantified(ground_SEMENT):
+        if not SEMENTUtil.check_if_quantified(ground_SEMENT):
             quantified_ground = self.quantify_generic(ground_SEMENT)
         else:
             quantified_ground = ground_SEMENT
@@ -309,7 +309,7 @@ class BaseConstructionsMixin:
         place_n = self.noun('place_n')
 
         # 2. ensure ground_SEMENT is quantified
-        if not POGGSEMENTUtil.check_if_quantified(ground_SEMENT):
+        if not SEMENTUtil.check_if_quantified(ground_SEMENT):
             quantified_ground = self.quantify_generic(ground_SEMENT)
         else:
             quantified_ground = ground_SEMENT
@@ -334,7 +334,7 @@ class BaseConstructionsMixin:
     @SemCompTracer.trace
     def possessive(self, possessor_SEMENT: SEMENT, possessed_SEMENT: SEMENT) -> SEMENT:
         # check that possessor_SEMENT is quantified
-        if not POGGSEMENTUtil.check_if_quantified(possessor_SEMENT):
+        if not SEMENTUtil.check_if_quantified(possessor_SEMENT):
             quantified_possessor = self.quantify_generic(possessor_SEMENT)
         else:
             quantified_possessor = possessor_SEMENT

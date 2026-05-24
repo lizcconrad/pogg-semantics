@@ -1,19 +1,21 @@
 """
-The `sement_util` module contains the `POGGSEMENTUtil` class which has a number of static functions that are useful for
+The `sement_util` module contains the `SEMENTUtil` class which has a number of static functions that are useful for
 manipulating, comparing, and printing SEMENT structures.
 
-[See usage examples here.](project:/usage_nbs/pogg/semantic_composition/sementutil_usage.ipynb)
+[See usage examples here.](project:/usage_nbs/pogg/semantic_composition/SEMENTUtil_usage.ipynb)
 """
 import re
 
 from delphin import mrs
-from pogg.my_delphin.my_delphin import SEMENT
-from pogg.my_delphin import my_util
-import pogg.my_delphin.sementcodecs as sementcodecs
+
+import pogg_semantics.my_delphin.sementcodecs as sementcodecs
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.my_delphin import is_isomorphic_ignore_predicate_labels
+
 import tabulate
 import copy
 
-class POGGSEMENTUtil:
+class SEMENTUtil:
     """Provides static functions for manipulating, comparing, and printing SEMENT structures."""
 
     @staticmethod
@@ -228,11 +230,11 @@ class POGGSEMENTUtil:
         current_hcons = current_SEMENT.hcons
         current_icons = current_SEMENT.icons
         # group the equalities so if x1=x2 and x2=x3 there's a list of [x1, x2, x3] with all variables that are equivalent
-        grouped_eqs = POGGSEMENTUtil.group_equalities(current_SEMENT.eqs)
+        grouped_eqs = SEMENTUtil.group_equalities(current_SEMENT.eqs)
 
         for eq in grouped_eqs:
             # need to get the most specific variable of the set
-            chosen_var = POGGSEMENTUtil.get_most_specified_variable(list(eq))
+            chosen_var = SEMENTUtil.get_most_specified_variable(list(eq))
 
             # check the top
             if current_SEMENT.top in eq:
@@ -377,8 +379,8 @@ class POGGSEMENTUtil:
         """
 
         # overwrite EQs in both SEMENTs for ease of checking isomorphism
-        s1_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s1)
-        s2_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s2)
+        s1_ovrwrit = SEMENTUtil.overwrite_eqs(s1)
+        s2_ovrwrit = SEMENTUtil.overwrite_eqs(s2)
 
         # deepcopy broken right now
         # s1_copy = deepcopy(s1_eq_overwritten)  # don't modify the original
@@ -430,8 +432,8 @@ class POGGSEMENTUtil:
         """
 
         # overwrite EQs in both SEMENTs for ease of checking isomorphism
-        s1_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s1)
-        s2_ovrwrit = POGGSEMENTUtil.overwrite_eqs(s2)
+        s1_ovrwrit = SEMENTUtil.overwrite_eqs(s1)
+        s2_ovrwrit = SEMENTUtil.overwrite_eqs(s2)
 
         # deepcopy broken right now
         # s1_copy = deepcopy(s1_eq_overwritten)  # don't modify the original
@@ -453,7 +455,7 @@ class POGGSEMENTUtil:
         s1_copy.hcons.append(mrs.HCons.qeq("*top*", s1_copy.top))
         s2_copy.hcons.append(mrs.HCons.qeq("*top*", s2_copy.top))
 
-        mrs_isomorphism = my_util.is_isomorphic_ignore_predicate_labels(s1_copy, s2_copy)
+        mrs_isomorphism = is_isomorphic_ignore_predicate_labels(s1_copy, s2_copy)
         # check that both SEMENTs have the same slot keys (not vals tho)
         slots_equivalent = s1_copy.slots.keys() == s2_copy.slots.keys()
         # return isomorphism check
@@ -540,7 +542,7 @@ class POGGSEMENTUtil:
         if sement.eqs is not None and len(sement.eqs) > 0:
             raise ValueError("SEMENT has uncollappsed EQs: {}, aborting".format(sement.eqs))
 
-        variable_roles_dict = POGGSEMENTUtil.create_variable_roles_dict(sement)
+        variable_roles_dict = SEMENTUtil.create_variable_roles_dict(sement)
 
         # create a list of hcons labeled with their actual semantic role sets along with the handles themselves
         hcons_list = []
@@ -594,7 +596,7 @@ class POGGSEMENTUtil:
         if sement.eqs is not None and len(sement.eqs) > 0:
             raise ValueError("SEMENT has uncollappsed EQs: {}, aborting".format(sement.eqs))
 
-        variable_roles_dict = POGGSEMENTUtil.create_variable_roles_dict(sement)
+        variable_roles_dict = SEMENTUtil.create_variable_roles_dict(sement)
 
         # create a list of icons labeled with their actual semantic role sets along with the variables themselves
         icons_list = []
@@ -668,8 +670,8 @@ class POGGSEMENTUtil:
         actual_only_slots = []
 
         # make the variable_roles dicts
-        gold_variable_roles = POGGSEMENTUtil.create_variable_roles_dict(gold_sement)
-        actual_variable_roles = POGGSEMENTUtil.create_variable_roles_dict(actual_sement)
+        gold_variable_roles = SEMENTUtil.create_variable_roles_dict(gold_sement)
+        actual_variable_roles = SEMENTUtil.create_variable_roles_dict(actual_sement)
 
         # keep track of slot values in actual_sement.slots that match a slot in gold
         # i.e. if we find _cozy_a_1.ARG1 in both, store the value (e.g. x1) from actual_sement.slots
@@ -779,8 +781,8 @@ class POGGSEMENTUtil:
             raise ValueError("Actual SEMENT has uncollappsed EQs: {}, aborting".format(actual_sement.eqs))
 
         # make the variable_roles dicts
-        gold_variable_roles = POGGSEMENTUtil.create_variable_roles_dict(gold_sement)
-        actual_variable_roles = POGGSEMENTUtil.create_variable_roles_dict(actual_sement)
+        gold_variable_roles = SEMENTUtil.create_variable_roles_dict(gold_sement)
+        actual_variable_roles = SEMENTUtil.create_variable_roles_dict(actual_sement)
 
         for gold_var in gold_variable_roles:
             role_set = gold_variable_roles[gold_var]
@@ -898,8 +900,8 @@ class POGGSEMENTUtil:
         if (actual_sement.eqs != None and len(actual_sement.eqs) > 0):
             raise ValueError("Actual SEMENT has uncollappsed EQs: {}, aborting".format(actual_sement.eqs))
 
-        gold_hcons_list = POGGSEMENTUtil.create_hcons_list(gold_sement)
-        actual_hcons_list = POGGSEMENTUtil.create_hcons_list(actual_sement)
+        gold_hcons_list = SEMENTUtil.create_hcons_list(gold_sement)
+        actual_hcons_list = SEMENTUtil.create_hcons_list(actual_sement)
 
         overlap_hcons = []
         gold_hcons = []
@@ -1007,8 +1009,8 @@ class POGGSEMENTUtil:
         if actual_sement.eqs != None and len(actual_sement.eqs) > 0:
             raise ValueError("Actual SEMENT has uncollappsed EQs: {}, aborting".format(actual_sement.eqs))
 
-        gold_icons_list = POGGSEMENTUtil.create_icons_list(gold_sement)
-        actual_icons_list = POGGSEMENTUtil.create_icons_list(actual_sement)
+        gold_icons_list = SEMENTUtil.create_icons_list(gold_sement)
+        actual_icons_list = SEMENTUtil.create_icons_list(actual_sement)
 
         overlap_icons = []
         gold_icons = []
@@ -1568,15 +1570,15 @@ class POGGSEMENTUtil:
         """
 
         # collapse EQs before starting
-        gold_sement_collapsed = POGGSEMENTUtil.overwrite_eqs(gold_sement)
-        actual_sement_collapsed = POGGSEMENTUtil.overwrite_eqs(actual_sement)
+        gold_sement_collapsed = SEMENTUtil.overwrite_eqs(gold_sement)
+        actual_sement_collapsed = SEMENTUtil.overwrite_eqs(actual_sement)
 
         report = ""
 
-        overlap_slots, gold_slots, actual_slots = POGGSEMENTUtil.find_slot_overlaps(gold_sement_collapsed, actual_sement_collapsed)
-        overlap_eqs, overlap_eqs_prop_diff, gold_eqs, actual_eqs = POGGSEMENTUtil.find_var_eq_overlaps(gold_sement_collapsed, actual_sement_collapsed)
-        overlap_hcons, gold_hcons, actual_hcons = POGGSEMENTUtil.find_hcons_overlaps(gold_sement_collapsed, actual_sement_collapsed)
-        overlap_icons, gold_icons, actual_icons = POGGSEMENTUtil.find_icons_overlaps(gold_sement_collapsed, actual_sement_collapsed)
+        overlap_slots, gold_slots, actual_slots = SEMENTUtil.find_slot_overlaps(gold_sement_collapsed, actual_sement_collapsed)
+        overlap_eqs, overlap_eqs_prop_diff, gold_eqs, actual_eqs = SEMENTUtil.find_var_eq_overlaps(gold_sement_collapsed, actual_sement_collapsed)
+        overlap_hcons, gold_hcons, actual_hcons = SEMENTUtil.find_hcons_overlaps(gold_sement_collapsed, actual_sement_collapsed)
+        overlap_icons, gold_icons, actual_icons = SEMENTUtil.find_icons_overlaps(gold_sement_collapsed, actual_sement_collapsed)
 
         report += "--- GOLD SEMENT ---\n{}\n\n".format(sementcodecs.encode(gold_sement_collapsed, indent=True))
         report += "--- ACTUAL SEMENT ---\n{}\n".format(sementcodecs.encode(actual_sement_collapsed, indent=True))
@@ -1589,38 +1591,38 @@ class POGGSEMENTUtil:
             report += "SLOT DISCREPANCIES\n"
             report += "^^^^^^^^^^^^^^^^^^\n"
             report += "GOLD ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_slots_table(gold_slots, "gold"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_slots_table(gold_slots, "gold"))
             report += "ACTUAL ONLY\n"
-            report += "{}\n\n\n".format(POGGSEMENTUtil._build_nonoverlap_slots_table(actual_slots, "actual"))
+            report += "{}\n\n\n".format(SEMENTUtil._build_nonoverlap_slots_table(actual_slots, "actual"))
 
         if len(gold_eqs) > 0 or len(actual_eqs) > 0:
             report += "SEMANTIC ROLE IDENTITY DISCREPANCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "GOLD ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_eqs_table(gold_eqs, "gold"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_eqs_table(gold_eqs, "gold"))
             report += "ACTUAL ONLY\n"
-            report += "{}\n\n\n".format(POGGSEMENTUtil._build_nonoverlap_eqs_table(actual_eqs, "actual"))
+            report += "{}\n\n\n".format(SEMENTUtil._build_nonoverlap_eqs_table(actual_eqs, "actual"))
 
         if len(overlap_eqs_prop_diff) > 0:
             report += "VARIABLE PROPERTY DISCREPANCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
-            report += "{}\n\n\n".format(POGGSEMENTUtil._build_overlap_eqs_prop_diff_table(overlap_eqs_prop_diff))
+            report += "{}\n\n\n".format(SEMENTUtil._build_overlap_eqs_prop_diff_table(overlap_eqs_prop_diff))
 
         if len(gold_hcons) > 0 or len(actual_hcons) > 0:
             report += "HANDLE CONSTRAINT DISCREPANCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "GOLD ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_hcons_table(gold_hcons, "gold"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_hcons_table(gold_hcons, "gold"))
             report += "ACTUAL ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_hcons_table(actual_hcons, "actual"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_hcons_table(actual_hcons, "actual"))
 
         if len(gold_icons) > 0 or len(actual_icons) > 0:
             report += "INDIVIDUAL CONSTRAINT DISCREPANCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "GOLD ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_icons_table(gold_icons, "gold"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_icons_table(gold_icons, "gold"))
             report += "ACTUAL ONLY\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_nonoverlap_icons_table(actual_icons, "actual"))
+            report += "{}\n\n".format(SEMENTUtil._build_nonoverlap_icons_table(actual_icons, "actual"))
 
 
         report += "\n\n=====================\n"
@@ -1631,25 +1633,25 @@ class POGGSEMENTUtil:
             report += "SLOT CONSISTENCIES\n"
             report += "^^^^^^^^^^^^^^^^^^\n"
             report += "OVERLAPPING\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_overlap_slots_table(overlap_slots))
+            report += "{}\n\n".format(SEMENTUtil._build_overlap_slots_table(overlap_slots))
 
         if len(overlap_eqs) > 0:
             report += "SEMANTIC ROLE IDENTITY CONSISTENCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "OVERLAPPING\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_overlap_eqs_table(overlap_eqs))
+            report += "{}\n\n".format(SEMENTUtil._build_overlap_eqs_table(overlap_eqs))
 
         if len(overlap_hcons) > 0:
             report += "HANDLE CONSTRAINT CONSISTENCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "OVERLAPPING\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_overlap_hcons_table(overlap_hcons))
+            report += "{}\n\n".format(SEMENTUtil._build_overlap_hcons_table(overlap_hcons))
 
         if len(overlap_icons) > 0:
             report += "INDIVIDUAL CONSTRAINT CONSISTENCIES\n"
             report += "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
             report += "OVERLAPPING\n"
-            report += "{}\n\n".format(POGGSEMENTUtil._build_overlap_icons_table(overlap_icons))
+            report += "{}\n\n".format(SEMENTUtil._build_overlap_icons_table(overlap_icons))
 
 
         return report

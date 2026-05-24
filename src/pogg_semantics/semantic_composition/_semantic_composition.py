@@ -5,12 +5,13 @@ The base_constructions module contains classes that help in creating SEMENTs fro
 """
 
 from pathlib import Path
-from pogg.pogg_config import POGGCompositionConfig
-from pogg.semantic_composition.semantic_algebra import SemanticAlgebra
-from pogg.semantic_composition.composition_mixins.single_word_constructions import SingleWordConstructionsMixin
-from pogg.semantic_composition.composition_mixins.base_constructions import BaseConstructionsMixin
-from pogg.semantic_composition.composition_mixins.heuristic_constructions import HeuristicConstructionsMixin
-from pogg.semantic_composition.composition_mixins.boolean_constructions import BooleanConstructionsMixin
+from pogg_semantics.pogg_config import POGGCompositionConfig
+
+from pogg_semantics.semantic_composition._semantic_algebra import SemanticAlgebra
+from pogg_semantics.semantic_composition.composition_mixins.single_word_constructions import SingleWordConstructionsMixin
+from pogg_semantics.semantic_composition.composition_mixins.base_constructions import BaseConstructionsMixin
+from pogg_semantics.semantic_composition.composition_mixins.heuristic_constructions import HeuristicConstructionsMixin
+from pogg_semantics.semantic_composition.composition_mixins.boolean_constructions import BooleanConstructionsMixin
 # TODO: how can i make these optional?
 # data specific mixins
 # from pogg.semantic_composition.composition_mixins.perplexity_constructions import PerplexityConstructionsMixin

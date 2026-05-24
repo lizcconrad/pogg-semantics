@@ -14,9 +14,10 @@ from typing import Optional
 from delphin import predicate, variable
 from delphin.lnk import Lnk
 from delphin.mrs import CONSTANT_ROLE, EP, HCons, ICons, MRSSyntaxError
-from pogg.my_delphin.my_delphin import SEMENT
 from delphin.sembase import property_priority, role_priority
 from delphin.util import Lexer
+
+from pogg_semantics.my_delphin._my_delphin import SEMENT
 
 CODEC_INFO = {
     'representation': 'mrs',

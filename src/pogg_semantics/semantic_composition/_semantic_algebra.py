@@ -6,11 +6,10 @@ The semantic_algebra module contains the SemanticAlgebra class which contains me
 
 from pathlib import Path
 from delphin import mrs
-from pogg.my_delphin.my_delphin import SEMENT
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.pogg_config import POGGCompositionConfig
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.pogg_config import POGGCompositionConfig
 
-from pogg.semantic_composition.call_tracer import SemAlgTracer
+from pogg_semantics.semantic_composition._call_tracer import SemAlgTracer
 
 
 class SemanticAlgebra:

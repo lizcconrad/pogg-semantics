@@ -1,7 +1,5 @@
-from pogg.my_delphin.my_delphin import SEMENT
-import re
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
-from pogg.semantic_composition.call_tracer import SemCompTracer
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.semantic_composition._call_tracer import SemCompTracer
 
 class BooleanConstructionsMixin:
     """

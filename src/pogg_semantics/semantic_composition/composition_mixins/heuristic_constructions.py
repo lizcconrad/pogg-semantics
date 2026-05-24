@@ -1,10 +1,8 @@
-from pogg.my_delphin.my_delphin import SEMENT
 import re
-from delphin import ace
-from pogg.my_delphin import sementcodecs
-from pogg.semantic_composition.sement_util import POGGSEMENTUtil
 
-from pogg.semantic_composition.call_tracer import SemCompTracer
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.semantic_composition._sement_util import SEMENTUtil
+from pogg_semantics.semantic_composition._call_tracer import SemCompTracer
 
 class HeuristicConstructionsMixin:
     """
@@ -19,7 +17,7 @@ class HeuristicConstructionsMixin:
         # edges labeled "descriptor" may have an adjective or a participle as their child
         # so the function has to determine which type of descriptor it has and do composition based on that
 
-        descriptor_key_rel = POGGSEMENTUtil.get_key_rel(descriptor_SEMENT)
+        descriptor_key_rel = SEMENTUtil.get_key_rel(descriptor_SEMENT)
 
         # if the descriptor's key_rel is a verb...
         if re.match(r"_[a-z]+_v_", descriptor_key_rel.predicate):
@@ -37,7 +35,7 @@ class HeuristicConstructionsMixin:
         else:
             # if the thing being described is a proper noun, give the adjective's intrinsic variable TENSE information
             # then we get "Liz, who is happy" instead of "happy Liz"
-            described_key_rel = POGGSEMENTUtil.get_key_rel(described_SEMENT)
+            described_key_rel = SEMENTUtil.get_key_rel(described_SEMENT)
             if described_key_rel.predicate == 'named':
                 return self.nonrestrictive_adjectival_relative_clause(descriptor_SEMENT, described_SEMENT)
             else:

@@ -4,10 +4,8 @@ The `single_word_constructions` module contains the Mixin class for creating SEM
 [See usage examples here.](project:/usage_nbs/pogg/semantic_composition/SemanticComposition_usage.ipynb)
 """
 
-from pogg.my_delphin.my_delphin import SEMENT
-
-from pogg.semantic_composition.call_tracer import SemCompTracer
-
+from pogg_semantics.my_delphin import SEMENT
+from pogg_semantics.semantic_composition._call_tracer import SemCompTracer
 
 class SingleWordConstructionsMixin:
     """

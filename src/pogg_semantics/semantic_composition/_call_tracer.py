@@ -1,5 +1,3 @@
-import sys
-import inspect
 from functools import wraps
 
 class SemCompTracer:
