@@ -4,6 +4,7 @@ This module contains the POGGCompositionConfig class, which stores configuration
 [See usage examples here.](project:/usage_nbs/pogg/pogg_config_usage.ipynb)
 """
 
+from os.path import abspath
 import warnings
 import json
 from delphin import semi
@@ -150,14 +151,14 @@ class POGGCompositionConfig:
 
         # save grammar_location in the POGGCompositionConfig object
         try:
-            self.grammar_location = json_config['grammar_location']
+            self.grammar_location = abspath(json_config['grammar_location'])
         except KeyError:
             raise KeyError("'grammar_location' is missing in the config file")
 
         # save SEMI_location in the POGGCompositionConfig object and load the SEMI object
         try:
 
-            self.SEMI_location = json_config['SEMI']
+            self.SEMI_location = abspath(json_config['SEMI'])
             # suppress SEMI warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
