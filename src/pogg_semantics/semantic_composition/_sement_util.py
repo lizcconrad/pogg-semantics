@@ -19,19 +19,41 @@ class SEMENTUtil:
     """Provides static functions for manipulating, comparing, and printing SEMENT structures."""
 
     @staticmethod
-    def add_intrinsic_variable_property(sement, property_name, property_value):
+    def add_intrinsic_variable_property(sement, property_name, property_value, override=False):
         if property_name in sement.variables[sement.index]:
-            return
+            if override:
+                sement.variables[sement.index][property_name] = property_value
+            else:
+                return
         else:
             sement.variables[sement.index][property_name] = property_value
 
     @staticmethod
+    # TODO: this won't get the key_rel when something is quantified... fix ...
     def get_key_rel(sement):
         key_rel = None
+        quantified_iv = None
         for rel in sement.rels:
-            if sement.index == rel.id and not rel.predicate.endswith("_q"):
+            if sement.index == rel.iv and not (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
                 key_rel = rel
                 break
+            elif sement.index == rel.iv and (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
+                # see if it's a member of an eq
+                for eq in sement.eqs:
+                    if sement.index in eq:
+                        # TODO: get the other member of the tuple
+                        for var in eq:
+                            if var != sement.index:
+                                quantified_iv = var
+
+
+        # look again for the key rel...
+        if quantified_iv is not None:
+            for rel in sement.rels:
+                if quantified_iv == rel.iv and not (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
+                    key_rel = rel
+                    break
+
 
         if key_rel is None:
             raise ValueError("Key relation not found")
@@ -316,7 +338,7 @@ class SEMENTUtil:
         # build new overwritten SEMENT
         # eqs list is gone now
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(current_top, current_index, current_eps, current_SEMENT.slots, None, current_hcons, current_icons, current_variables)
+        return SEMENT(current_top, current_index, current_eps, current_SEMENT.slots, [], current_hcons, current_icons, current_variables)
 
     @staticmethod
     def check_if_quantified(check_sement):
@@ -344,6 +366,11 @@ class SEMENTUtil:
         """
         # if the INDEX (or something eq to INDEX) is not the ARG0 of something with RSTR, gg
         index = check_sement.index
+
+        # if the INDEX is of type e, don't need to check so return
+        if index[0] == "e":
+            return True
+
         index_set = set()
         index_set.add(index)
         # go through eqs to find variables eq to index

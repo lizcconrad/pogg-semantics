@@ -84,7 +84,7 @@ path = "/Users/lizcconrad/.venvs/pogg_semantics_tests"
 dependencies = [
   "coverage-enable-subprocess==1.0",
   "coverage[toml]~=7.4",
-  "pytest~=8.1",
+  "pytest<=9.0",
   "pytest-mock~=3.12",
   "pytest-randomly~=3.15",
   "pytest-rerunfailures~=14.0",
@@ -105,6 +105,7 @@ omit = [
 pogg_semantics = ["src/pogg_semantics", "*/pogg_semantics/src/pogg_semantics"]
 tests = ["tests", "*/pogg_semantics/tests"]
 
+
 [tool.coverage.report]
 show_missing = true
 exclude_lines = [
@@ -113,7 +114,7 @@ exclude_lines = [
   "if TYPE_CHECKING:",
 ]
 omit = [
-  "*/src/pogg/__about__.py",
+  "*/src/pogg_semantics/__about__.py",
   "*/__init__.py",
   "*/tests/*"
 ]

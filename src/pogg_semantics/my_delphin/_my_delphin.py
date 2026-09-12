@@ -39,6 +39,11 @@ class SEMENT(mrs.MRS):
                  hcons: Optional[Iterable[mrs.HCons]] = None,
                  icons: Optional[Iterable[mrs.ICons]] = None,
                  variables: Optional[Mapping[str, Mapping[str, str]]] = None,
+
+                 # TODO: potentially temporary raising/control attributes
+                 embedded_slots: Optional[Mapping[str, str]] = None,
+                 # embedder_slot: Optional[Mapping[str, str]] = None,
+
                  lnk: Optional[Lnk] = None,
                  surface=None,
                  identifier=None):
@@ -60,7 +65,22 @@ class SEMENT(mrs.MRS):
         | `icons` | `Iterable[mrs.ICons]` | list of ICons |
         | `variables` | `Mapping[str, Mapping[str, str]]` | dict of variables and their properties |
         """
-        super().__init__(top, index, rels, hcons, icons, variables, lnk, surface, identifier)
+
+        # this is required for control constructions because I use the same SEMENT for composition twice
+        unique_rels = []
+        for rel in rels:
+            unique_flag = True
+            for unique_rel in unique_rels:
+                if rel.predicate == unique_rel.predicate:
+                    if rel.args == unique_rel.args:
+                        unique_flag = False
+            if unique_flag:
+                unique_rels.append(rel)
+
+        super().__init__(top, index, unique_rels, hcons, icons, variables, lnk, surface, identifier)
 
         self.slots = slots
         self.eqs = eqs
+
+        self.embedded_slots = embedded_slots
+        # self.embedder_slot = embedder_slot

@@ -216,7 +216,7 @@ class POGGCompositionConfig:
         | dict of `str`:`str` | dict of semantic slots and their variable values | `{'ARG1': 'x1'}` |
         """
 
-        if manual_synopsis is None:
+        if manual_synopsis is None or manual_synopsis == {}:
             try:
                 synopsis = self.SEMI.find_synopsis(predicate)
                 synopsis_dict = synopsis.to_dict()
@@ -235,3 +235,7 @@ class POGGCompositionConfig:
             args_dict[role['name']] = self.var_labeler.get_var_name(role['value'])
 
         return args_dict
+
+
+    def reset_var_labeler(self):
+        self.var_labeler.reset_labeler()

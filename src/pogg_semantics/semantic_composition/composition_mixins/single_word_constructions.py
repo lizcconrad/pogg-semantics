@@ -14,6 +14,29 @@ class SingleWordConstructionsMixin:
     """
 
     @SemCompTracer.trace
+    def manual_CARG_synopsis(self, predicate: str, carg_value: str, synopsis_dict: dict,
+                        intrinsic_variable_properties: dict = None) -> SEMENT:
+        """
+        Wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class. Includes a parameter for inserting a manual argument synopsis dict
+        if the first result from the SEMI isn't what you want.
+
+        **Parameters**
+        | Parameter | Type | Default | Description | Example |
+        | --------- | ---- | ------- | ----------- | ------- |
+        | `predicate` | `str` |  | ERG predicate label | `_cookie_n_1` |
+        | `intrinsic_variable_properties` | `dict` of `str:str` | None  | optional dictionary of properties of the intrinsic variable | `{'NUM': 'sg'}` |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `SEMENT` | newly created SEMENT |
+        """
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        return self.semantic_algebra.create_CARG_SEMENT(predicate, carg_value,
+                                            intrinsic_variable_properties, synopsis_dict)
+
+    @SemCompTracer.trace
     def manual_synopsis(self, predicate: str, synopsis_dict: dict, intrinsic_variable_properties: dict = None) -> SEMENT:
         """
         Wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class. Includes a parameter for inserting a manual argument synopsis dict
@@ -76,6 +99,27 @@ class SingleWordConstructionsMixin:
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
     @SemCompTracer.trace
+    def adverb(self, predicate: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        """
+        Creates a SEMENT with just an adjective EP in it.
+        This is just a wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class, but is more transparently named for users.
+
+        **Parameters**
+        | Parameter | Type | Default | Description | Example |
+        | --------- | ---- | ------- | ----------- | ------- |
+        | `predicate` | `str` |  | ERG predicate label | `_tasty_a_1` |
+        | `intrinsic_variable_properties` | `dict` of `str:str` | None  | optional dictionary of properties of the intrinsic variable | `{'MOOD': 'indicative'}` |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `SEMENT` | newly created SEMENT |
+        """
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
     def comparative_adjective(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT for a comparative adjective.
@@ -100,6 +144,36 @@ class SingleWordConstructionsMixin:
         return self.semantic_algebra.op_non_scopal_argument_hook_slots(comparative, adj, "ARG1")
 
     @SemCompTracer.trace
+    def superlative_adjective(self, predicate: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        """
+        Creates a SEMENT for a comparative adjective.
+        This is just a wrapper around `create_base_SEMENT` from the `SemanticAlgebra` class, but is more transparently named for users.
+
+        **Parameters**
+        | Parameter | Type | Default | Description | Example |
+        | --------- | ---- | ------- | ----------- | ------- |
+        | `predicate` | `str` |  | ERG predicate label | `_tasty_a_1` |
+        | `intrinsic_variable_properties` | `dict` of `str:str` | None  | optional dictionary of properties of the intrinsic variable | `{'MOOD': 'indicative'}` |
+
+        **Returns**
+        | Type | Description |
+        | ---- | ----------- |
+        | `SEMENT` | newly created SEMENT |
+        """
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+
+        adj = self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
+        superlative = self.semantic_algebra.create_base_SEMENT("superl")
+        return self.semantic_algebra.op_non_scopal_argument_hook_slots(superlative, adj, "ARG1")
+
+    @SemCompTracer.trace
+    def conjunction(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
     def determiner(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a determiner EP in it.
@@ -121,9 +195,20 @@ class SingleWordConstructionsMixin:
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
     @SemCompTracer.trace
-    def proper_noun(self, name: str, intrinsic_variable_properties: dict=None) -> SEMENT:
+    def holiday(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+
+        # set or overwrite QUANT feature to be udef_q
+        intrinsic_variable_properties['QUANT'] = "udef_q"
+
+        return self.semantic_algebra.create_CARG_SEMENT("holiday", name, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
+    def non_unique_name(self, name: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
-        Creates a SEMENT for a named entity, e.g. a person ("Liz").
+        Name that can be singular or plural and can be quantified with "the" or "a" ... e.g. car names
+        "I have a Honda Civic"
 
         **Parameters**
         | Parameter | Type | Default | Description | Example |
@@ -138,7 +223,47 @@ class SingleWordConstructionsMixin:
         """
         if intrinsic_variable_properties is None:
             intrinsic_variable_properties = {}
+
+        # set or overwrite QUANT feature to be def_udef_a_q to allow "a Honda Civic"
+        intrinsic_variable_properties['QUANT'] = "def_udef_a_q"
+
         return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
+    def name(self, name: str, intrinsic_variable_properties: dict=None) -> SEMENT:
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+
+        return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
+    def plural_name(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+
+        # set or overwrite NUM to be pl ...
+        # technically this isn't necessary if the name appears "on its own"
+        # but if it's the nonhead of a compound that fxn will insert "sg" if the property is not set
+        intrinsic_variable_properties['NUM'] = "pl"
+
+        # # set or overwrite QUANT feature to be explicit_or_proper_q
+        # intrinsic_variable_properties['QUANT'] = "explicit_or_proper_q"
+
+        return self.semantic_algebra.create_CARG_SEMENT("named_pl", name, intrinsic_variable_properties)
+
+    # @SemCompTracer.trace
+    # def the_name(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+    #     # e.g. The Beatles
+    #     if intrinsic_variable_properties is None:
+    #         intrinsic_variable_properties = {}
+    #
+    #     # set or overwrite QUANT feature to be proper_q and enforce singular if no value is set
+    #     intrinsic_variable_properties['QUANT'] = "_the_q"
+    #     if "NUM" not in intrinsic_variable_properties:
+    #         intrinsic_variable_properties['NUM'] = "sg"
+    #
+    #     # TODO: named_n is probably better for things like The Netherlands ... but
+    #     return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
 
     @SemCompTracer.trace
     def noun(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
@@ -262,6 +387,50 @@ class SingleWordConstructionsMixin:
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
 
     @SemCompTracer.trace
+    def unknown_noun(self, word: str, intrinsic_variable_properties: dict=None, synopsis_dict: dict=None) -> SEMENT:
+        # if no synopsis dict is provided, assume only ARG0 of type x
+        if synopsis_dict is None or synopsis_dict == {}:
+            synopsis_dict = {
+                "roles": [
+                    {
+                        "name": "ARG0",
+                        "value": "x"
+                    }
+                ]
+            }
+
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+
+        if "IND" not in intrinsic_variable_properties:
+            intrinsic_variable_properties["IND"] = "+"
+
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        return self.semantic_algebra.create_CARG_SEMENT("unk_n", word, intrinsic_variable_properties, synopsis_dict)
+
+    @SemCompTracer.trace
+    def unknown_adjective(self, word: str, intrinsic_variable_properties: dict = None, synopsis_dict: dict = None) -> SEMENT:
+        # if no synopsis dict is provided, assume only ARG0 of type x
+        if synopsis_dict is None or synopsis_dict == {}:
+            synopsis_dict = {
+                "roles": [
+                    {
+                        "name": "ARG0",
+                        "value": "e"
+                    },
+                    {
+                        "name": "ARG1",
+                        "value": "x"
+                    }
+                ]
+            }
+
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        return self.semantic_algebra.create_CARG_SEMENT("unk_a", word, intrinsic_variable_properties, synopsis_dict)
+
+    @SemCompTracer.trace
     def verb(self, predicate: str, intrinsic_variable_properties: dict=None) -> SEMENT:
         """
         Creates a SEMENT with just a verb EP in it.
@@ -281,3 +450,4 @@ class SingleWordConstructionsMixin:
         if intrinsic_variable_properties is None:
             intrinsic_variable_properties = {}
         return self.semantic_algebra.create_base_SEMENT(predicate, intrinsic_variable_properties)
+

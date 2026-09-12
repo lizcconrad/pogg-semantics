@@ -37,7 +37,7 @@ class BooleanConstructionsMixin:
     def boolean_property(self, boolean_node_SEMENT: SEMENT, modified_SEMENT: SEMENT, true_SEMENT: SEMENT, false_SEMENT: SEMENT) -> SEMENT:
         key_rel = None
         for rel in boolean_node_SEMENT.rels:
-            if boolean_node_SEMENT.index == rel.id and not rel.predicate.endswith("_q"):
+            if boolean_node_SEMENT.index == rel.id and not (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
                 key_rel = rel
                 break
 
@@ -54,7 +54,7 @@ class BooleanConstructionsMixin:
                                      true_SEMENT: SEMENT, false_SEMENT: SEMENT) -> SEMENT:
         key_rel = None
         for rel in boolean_node_SEMENT.rels:
-            if boolean_node_SEMENT.index == rel.id and not rel.predicate.endswith("_q"):
+            if boolean_node_SEMENT.index == rel.id and not (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
                 key_rel = rel
                 break
 
@@ -71,7 +71,7 @@ class BooleanConstructionsMixin:
                                      ARG2_SEMENT: SEMENT, ARG1_SEMENT: SEMENT=None) -> SEMENT:
         key_rel = None
         for rel in boolean_node_SEMENT.rels:
-            if boolean_node_SEMENT.index == rel.id and not rel.predicate.endswith("_q"):
+            if boolean_node_SEMENT.index == rel.id and not (rel.predicate.endswith("_q") or rel.predicate.endswith("_q_i")):
                 key_rel = rel
                 break
 

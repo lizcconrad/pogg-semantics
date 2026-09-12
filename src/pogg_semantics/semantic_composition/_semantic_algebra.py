@@ -54,7 +54,8 @@ class SemanticAlgebra:
         for arg in ep.args:
             # include all semantic arguments except the intrinsic variable (usually ARG0) or CARG
             # EXCEPT for quantifiers, where ARG0 is also a slot
-            if (ep.args[arg] != ep.iv and arg != "CARG") or ep.predicate.endswith("_q"):
+            # TODO: _q_i for idiom_q_i...
+            if (ep.args[arg] != ep.iv and arg != "CARG") or ep.predicate.endswith("_q") or ep.predicate.endswith("_q_i"):
                 slots[arg] = ep.args[arg]
         return slots
 
@@ -90,7 +91,7 @@ class SemanticAlgebra:
 
         # if the predicate ends in "_q" it's a quantifier, so a new handle needs to be created to serve as the LTOP
         # otherwise, use the LBL as LTOP
-        if predicate.endswith("_q"):
+        if predicate.endswith("_q") or predicate.endswith("_q_i"):
             ltop = self.composition_config.var_labeler.get_var_name('h')
         else:
             ltop = lbl
@@ -98,10 +99,11 @@ class SemanticAlgebra:
         # create SEMENT with one EP on the RELS list
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         # send in empty lists for eqs, hcons, and icons for ease of composition
-        return SEMENT(ltop, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
+        return SEMENT(ltop, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties},
+                      embedded_slots={})
 
     @SemAlgTracer.trace
-    def create_CARG_SEMENT(self, predicate, carg_value, intrinsic_variable_properties={}):
+    def create_CARG_SEMENT(self, predicate, carg_value, intrinsic_variable_properties=None, synopsis_dict=None):
         """
         Make a base case SEMENT for an EP with a CARG argument.
 
@@ -119,9 +121,11 @@ class SemanticAlgebra:
         | ---- | ----------- |
         | `SEMENT` | newly created SEMENT with one EP in the `RELS` list |
         """
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
 
         # get semantic arguments for given predicate
-        args = self.composition_config.concretize(predicate)
+        args = self.composition_config.concretize(predicate, synopsis_dict)
         # create EP
         # create a handle that will serve as the LBL for the EP
         lbl = self.composition_config.var_labeler.get_var_name('h')
@@ -133,7 +137,50 @@ class SemanticAlgebra:
         # create SEMENT with one EP on the RELS list
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         # send in empty lists for eqs, hcons, and icons for ease of composition
-        return SEMENT(lbl, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties})
+        return SEMENT(lbl, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [], {ep.args['ARG0']: intrinsic_variable_properties},
+                      embedded_slots={})
+
+    # @SemAlgTracer.trace
+    # def create_embedder_SEMENT(self, predicate, embedder_slot=None, intrinsic_variable_properties=None, synopsis_dict=None):
+    #     """
+    #     Make the base case SEMENT.
+    #
+    #     That is, a SEMENT with only one EP in the `RELS` list before any composition has occurred.
+    #
+    #     **Parameters**
+    #     | Parameter | Type | Description | Default | Example |
+    #     | --------- | ---- | ----------- | ------- | ------- |
+    #     | `predicate` | `str` | ERG predicate label, obtained from the [SEMI](project:/education/erg.rst) | | `_cookie_n_1` |
+    #     | `intrinsic_variable_properties` | `dict` | optional dictionary of properties of the intrinsic variable | `{}` | `{'NUM': 'sg'}` |
+    #
+    #     **Returns**
+    #     | Type | Description |
+    #     | ---- | ----------- |
+    #     | `SEMENT` | newly created SEMENT with one EP in the `RELS` list |
+    #     """
+    #     if intrinsic_variable_properties is None:
+    #         intrinsic_variable_properties = {}
+    #
+    #     # get semantic arguments for given predicate
+    #     args = self.composition_config.concretize(predicate, synopsis_dict)
+    #
+    #     # create EP
+    #     # create a handle that will serve as the LBL for the EP
+    #     lbl = self.composition_config.var_labeler.get_var_name('h')
+    #     ep = mrs.EP(predicate, lbl, args)
+    #
+    #     # if the predicate ends in "_q" it's a quantifier, so a new handle needs to be created to serve as the LTOP
+    #     # otherwise, use the LBL as LTOP
+    #     if predicate.endswith("_q") or predicate.endswith("_q_i"):
+    #         ltop = self.composition_config.var_labeler.get_var_name('h')
+    #     else:
+    #         ltop = lbl
+    #
+    #     # create SEMENT with one EP on the RELS list
+    #     # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+    #     # send in empty lists for eqs, hcons, and icons for ease of composition
+    #     return SEMENT(ltop, ep.args['ARG0'], [ep], self._get_slots(ep), [], [], [],
+    #                   {ep.args['ARG0']: intrinsic_variable_properties}, embedder_slot=embedder_slot)
 
     @SemAlgTracer.trace
     def op_non_scopal_argument_hook_slots(self, functor, argument, slot_label):
@@ -183,6 +230,10 @@ class SemanticAlgebra:
 
         result_slots = argument.slots.copy()
 
+        # TODO: temporary solution ?
+        result_embedded_slots = argument.embedded_slots.copy()
+
+
         result_hcons = functor.hcons + argument.hcons
 
         result_icons = functor.icons + argument.icons
@@ -192,7 +243,8 @@ class SemanticAlgebra:
         result_variables.update(argument.variables)
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables,
+                      embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def op_non_scopal_functor_hook_slots(self, functor, argument, slot_label):
@@ -244,6 +296,9 @@ class SemanticAlgebra:
         # delete the slot that's been plugged
         del result_slots[slot_label]
 
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
         result_hcons = functor.hcons + argument.hcons
 
         result_icons = functor.icons + argument.icons
@@ -253,7 +308,8 @@ class SemanticAlgebra:
         result_variables.update(argument.variables)
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables,
+                      embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def op_scopal_argument_index_slots(self, functor, argument, slot_label):
@@ -299,6 +355,9 @@ class SemanticAlgebra:
 
         result_slots = argument.slots.copy()
 
+        # TODO: temporary solution ?
+        result_embedded_slots = argument.embedded_slots.copy()
+
         result_hcons = functor.hcons + argument.hcons
         result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
 
@@ -315,7 +374,8 @@ class SemanticAlgebra:
         result_eqs.append((new_h, functor.slots[slot_label]))
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables,
+                      embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def op_scopal_functor_index_slots(self, functor, argument, slot_label):
@@ -363,6 +423,9 @@ class SemanticAlgebra:
         # delete the slot that's been plugged
         del result_slots[slot_label]
 
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
         result_hcons = functor.hcons + argument.hcons
         result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
 
@@ -379,7 +442,8 @@ class SemanticAlgebra:
         result_eqs.append((new_h, functor.slots[slot_label]))
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables,
+                      embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def op_scopal_functor_index_argument_slots(self, functor, argument, slot_label):
@@ -426,6 +490,9 @@ class SemanticAlgebra:
 
         result_slots = argument.slots.copy()
 
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
         result_hcons = functor.hcons + argument.hcons
         result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
 
@@ -443,7 +510,7 @@ class SemanticAlgebra:
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
         return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
-                      result_variables)
+                      result_variables, embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def op_scopal_quantifier(self, functor, argument):
@@ -491,6 +558,9 @@ class SemanticAlgebra:
         # delete the slot that's been plugged
         del result_slots["ARG0"]
 
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
         result_hcons = functor.hcons + argument.hcons
         result_hcons.append(mrs.HCons(functor.slots["RSTR"], "qeq", argument.top))
         del result_slots["RSTR"]
@@ -502,7 +572,123 @@ class SemanticAlgebra:
         result_variables.update(argument.variables)
 
         # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
-        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables)
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons, result_variables,
+                      embedded_slots=result_embedded_slots)
+
+    @SemAlgTracer.trace
+    def op_raising(self, functor, argument, slot_label, raised_slot_label):
+
+        result_top = functor.top
+        result_index = functor.index
+
+        result_rels = functor.rels + argument.rels
+
+        result_eqs = functor.eqs + argument.eqs
+
+        result_slots = functor.slots.copy()
+        # delete the slot that's been plugged
+        del result_slots[slot_label]
+
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
+        # add to the slots list the raised slot ... if no such slot exists in the argument's slots list assume it was already plugged
+        # by letting it be plugged it enables either composing "she sleeps" + "continues" (plug slot before raising composition)
+        # she continues to sleep . . . she expects me to sleep
+        # OR "continues to sleep" + "she" (raise the slot)
+        if raised_slot_label in argument.slots:
+            result_embedded_slots[raised_slot_label] = argument.slots[raised_slot_label]
+
+        result_hcons = functor.hcons + argument.hcons
+        result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
+
+        result_icons = functor.icons + argument.icons
+
+        result_variables = {}
+        result_variables.update(functor.variables)
+        result_variables.update(argument.variables)
+
+        # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
+        # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
+        new_h = self.composition_config.var_labeler.get_var_name("h")
+        result_variables.update({new_h: {}})
+        result_eqs.append((new_h, functor.slots[slot_label]))
+
+        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
+                      result_variables, embedded_slots=result_embedded_slots)
+
+    @SemAlgTracer.trace
+    # not sure i need the arg hook slots version
+    def op_embedded_non_scopal_functor_hook_slots(self, functor, argument, slot_label):
+        result_top = functor.top
+        result_index = functor.index
+
+        result_rels = functor.rels + argument.rels
+
+        result_eqs = functor.eqs + argument.eqs
+        # identify (L)TOPs
+        result_eqs.append((functor.top, argument.top))
+        # add EQ between FUNC.EMBEDDED_SLOTS.slot_label and ARG.INDEX
+        result_eqs.append((functor.embedded_slots[slot_label], argument.index))
+
+        result_slots = functor.slots.copy()
+
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+        # delete the slot that's been plugged
+        del result_embedded_slots[slot_label]
+
+        result_hcons = functor.hcons + argument.hcons
+
+        result_icons = functor.icons + argument.icons
+
+        result_variables = {}
+        result_variables.update(functor.variables)
+        result_variables.update(argument.variables)
+
+        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
+                      result_variables,
+                      embedded_slots=result_embedded_slots)
+
+    @SemAlgTracer.trace
+    def op_control(self, functor, argument, slot_label, controller_slot_label, controlled_slot_label):
+
+        result_top = functor.top
+        result_index = functor.index
+
+        result_rels = functor.rels + argument.rels
+
+        result_eqs = functor.eqs + argument.eqs
+        # add eq between controller_slot and controlled_slot
+        result_eqs.append((functor.slots[controller_slot_label], argument.slots[controlled_slot_label]))
+
+        result_slots = functor.slots.copy()
+        # delete the slot that's been plugged
+        del result_slots[slot_label]
+
+        # TODO: temporary solution ?
+        result_embedded_slots = functor.embedded_slots.copy()
+
+        result_hcons = functor.hcons + argument.hcons
+        result_hcons.append(mrs.HCons(functor.slots[slot_label], "qeq", argument.top))
+
+        result_icons = functor.icons + argument.icons
+
+        result_variables = {}
+        result_variables.update(functor.variables)
+        result_variables.update(argument.variables)
+
+        # it's possible that the hi-handle in the handle constraint here is not type "h" (e.g. for "probably" it would be type "u")
+        # so to ensure it is properly constrained later, add an "artificial eq" between the current hi-handle and a newly created "h" variable
+        new_h = self.composition_config.var_labeler.get_var_name("h")
+        result_variables.update({new_h: {}})
+        result_eqs.append((new_h, functor.slots[slot_label]))
+
+        # top, index, rels, slots, eqs, hcons, icons, variables, lnk, surface, identifier
+        return SEMENT(result_top, result_index, result_rels, result_slots, result_eqs, result_hcons, result_icons,
+                      result_variables, embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
     def prepare_for_generation(self, sement):
@@ -544,19 +730,27 @@ class SemanticAlgebra:
         # TODO: BUT if i set this check to be only 'x' then it doesn't wrap stand-alone adjs like "black"
         # TODO: a more complex check could be like ,,, if it's i THEN see if the ARG1 of the rel who has that as ARG0 is in a qeq
         # TODO: i guess this depends tho like why the hell is probably's 'i' okay as the top level INDEX is that even real
-        if sement.index[0] != "e":
+        if unprepared_sement.index[0] != "e":
             # check if quantified, wrap in one if not
             if not SEMENTUtil.check_if_quantified(unprepared_sement):
-                # if the top level predicate is "named," use "proper_q"
                 quant_sement = None
-                for rel in unprepared_sement.rels:
-                    # if rel.predicate == "named" and rel.args['ARG0'] == unprepared_sement.index:
-                    #     quant_sement = self.create_base_SEMENT("def_or_proper_q")
-                    if rel.predicate == "card" and rel.args['ARG0'] == unprepared_sement.index:
-                        quant_sement = self.create_base_SEMENT("number_q")
+                # if there's an ad-hoc "QUANT" feature on the quantified_SEMENT's INDEX then use that
+                if 'QUANT' in unprepared_sement.variables[unprepared_sement.index]:
+                    quant_sement = self.create_base_SEMENT(unprepared_sement.variables[unprepared_sement.index]['QUANT'])
+                    # remove ad-hoc QUANT feature
+                    unprepared_sement.variables[unprepared_sement.index].pop('QUANT')
+                else:
+                    for rel in unprepared_sement.rels:
+                        # if the INDEX is the ARG0 of a "card" relation then quantify ith number_q
+                        if rel.predicate == "card" and rel.args['ARG0'] == unprepared_sement.index:
+                            quant_sement = self.create_base_SEMENT("number_q")
+                            break
+                        elif (rel.predicate == "named" or rel.predicate == "named_pl") and rel.args['ARG0'] == unprepared_sement.index:
+                            quant_sement = self.create_base_SEMENT("explicit_or_proper_q")
+                            break
 
-                if quant_sement is None:
-                    quant_sement = self.create_base_SEMENT("def_udef_a_q")
+                    if quant_sement is None:
+                        quant_sement = self.create_base_SEMENT("def_udef_a_q")
 
                 quantified_sement = self.op_scopal_quantifier(quant_sement, unprepared_sement)
             else:

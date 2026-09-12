@@ -181,6 +181,11 @@ def _decode_sement(lexer):
     eqs = []
     slots = {}
     variables = {}
+
+    # TODO: potentially temporary raising/control attributes ?
+    embedded_slots = {}
+    embedder_slot = None
+
     lexer.expect_type(LBRACK)
     lnk = _decode_lnk(lexer)
     surface = _decode_dqstring(lexer.accept_type(DQSTRING))
@@ -217,13 +222,25 @@ def _decode_sement(lexer):
                 slot = _decode_slot(lexer, variables)
                 slots[slot[0]] = slot[1]
             lexer.expect_type(RANGLE)
+        elif feature == "EMBEDDED_SLOTS":
+            lexer.expect_type(LANGLE)
+            while lexer.peek()[0] == FEATURE:
+                embedded_slot = _decode_slot(lexer, variables)
+                embedded_slots[slot[0]] = embedded_slot[1]
+            lexer.expect_type(RANGLE)
+        elif feature == 'EMBEDDER_SLOT':
+            lexer.expect_type(LANGLE)
+            embedder_slot = _decode_slot(lexer, variables)
+            lexer.expect_type(RANGLE)
         else:
             raise ValueError('invalid feature: ' + feature)
         feature = lexer.accept_type(FEATURE)
     lexer.expect_type(RBRACK)
     return SEMENT(top, index, rels, slots, eqs, hcons,
-               icons=icons, variables=variables,
-               lnk=lnk, surface=surface, identifier=identifier)
+                embedded_slots=embedded_slots,
+                # embedder_slot=embedder_slot,
+                icons=icons, variables=variables,
+                lnk=lnk, surface=surface, identifier=identifier)
 
 
 def _decode_lnk(lexer):
@@ -344,7 +361,9 @@ def _encode_sement(s, properties, lnk, indent):
         _encode_hcons(s.hcons),
         _encode_icons(s.icons, varprops),
         _encode_eqs(s.eqs),
-        _encode_slots(s.slots)
+        _encode_slots(s.slots),
+        _encode_embedded_slots(s.embedded_slots),
+        # _encode_embedder_slot(s.embedder_slot)
     ]
     return '[ {} ]'.format(
         delim.join(
@@ -451,6 +470,20 @@ def _encode_slots(slots):
     if slots:
         tokens = ['{}: {}'.format(slot, slots[slot]) for slot in slots]
         tokens = ['SLOTS: <'] + [' '.join(tokens)] + ['>']
+    return tokens
+
+def _encode_embedded_slots(slots):
+    tokens = None
+    if slots:
+        tokens = ['{}: {}'.format(slot, slots[slot]) for slot in slots]
+        tokens = ['EMBEDDED_SLOTS: <'] + [' '.join(tokens)] + ['>']
+    return tokens
+
+def _encode_embedder_slot(embedder_slot):
+    tokens = []
+    if embedder_slot is not None:
+        slot_label, slot_value = embedder_slot.popitem()
+        tokens.append('EMBEDDER_SLOT: < {}: {} >'.format(slot_label, slot_value))
     return tokens
 
 
