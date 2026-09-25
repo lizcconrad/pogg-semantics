@@ -237,6 +237,24 @@ class SingleWordConstructionsMixin:
         return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
 
     @SemCompTracer.trace
+    def standalone_name(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        # for people or companies etc, quantified with "proper_q" always
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        intrinsic_variable_properties["QUANT"] = "proper_q"
+
+        return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
+    def the_name(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
+        # for names that always appear with "the" e.g. The United States or The Alps
+        if intrinsic_variable_properties is None:
+            intrinsic_variable_properties = {}
+        intrinsic_variable_properties["QUANT"] = "_the_q"
+
+        return self.semantic_algebra.create_CARG_SEMENT("named", name, intrinsic_variable_properties)
+
+    @SemCompTracer.trace
     def plural_name(self, name: str, intrinsic_variable_properties: dict = None) -> SEMENT:
         if intrinsic_variable_properties is None:
             intrinsic_variable_properties = {}

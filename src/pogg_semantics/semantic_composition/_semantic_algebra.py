@@ -730,6 +730,8 @@ class SemanticAlgebra:
         # TODO: BUT if i set this check to be only 'x' then it doesn't wrap stand-alone adjs like "black"
         # TODO: a more complex check could be like ,,, if it's i THEN see if the ARG1 of the rel who has that as ARG0 is in a qeq
         # TODO: i guess this depends tho like why the hell is probably's 'i' okay as the top level INDEX is that even real
+        # TODO: okay but also stand alone adjs don't even generate anyway?? i think? ... change this back to i...
+        # TODO: actually idk if this will have quencies so ill keep it as e for now...
         if unprepared_sement.index[0] != "e":
             # check if quantified, wrap in one if not
             if not SEMENTUtil.check_if_quantified(unprepared_sement):

@@ -53,3 +53,23 @@ class MiscConstructionsMixin:
         """
         un_SEMENT = self.basic("_un-_a_neg")
         return self.semantic_algebra.op_non_scopal_argument_hook_slots(un_SEMENT, negated_SEMENT, "ARG1")
+
+    @SemCompTracer.trace
+    def compound_generic(self, head_SEMENT: SEMENT, non_head_SEMENT: SEMENT) -> SEMENT:
+        # CATEGORY: BASIC (?)
+
+        compound = self.basic("compound")
+        # use existential_q for non_head (...should only happen if it's a noun but theoretically the quantify check handles that)
+        if not SEMENTUtil.check_if_quantified(non_head_SEMENT):
+            udef_q = self.quantifier("existential_q")
+            quantify_non_head_noun = self.quantify(udef_q, non_head_SEMENT)
+        else:
+            quantify_non_head_noun = non_head_SEMENT
+
+        arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(compound, quantify_non_head_noun,
+                                                                              "ARG2")
+        # plug ARG1 of compound (head)
+        arg1_plugged = self.semantic_algebra.op_non_scopal_argument_hook_slots(arg2_plugged, head_SEMENT,
+                                                                               "ARG1")
+
+        return arg1_plugged

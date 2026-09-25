@@ -1,5 +1,7 @@
 from pogg_semantics.my_delphin import SEMENT
 from pogg_semantics.semantic_composition._call_tracer import SemCompTracer
+from pogg_semantics.semantic_composition._sement_util import SEMENTUtil
+
 
 class BooleanConstructionsMixin:
     """
@@ -16,11 +18,10 @@ class BooleanConstructionsMixin:
             return self.adjective("_false_a_of")
 
     @SemCompTracer.trace
-    def boolean_edge(self, main_comp_fxn, boolean_value_node: SEMENT,
-                     true_SEMENT: SEMENT, false_SEMENT: SEMENT, **kwargs):
+    def boolean_edge(self, boolean_value_node: SEMENT,
+                     true_SEMENT: SEMENT, false_SEMENT: SEMENT, main_comp_info):
         """eatenberry": {
             "comp_fxn": "boolean_edge",
-            "main_comp_fxn": "prenominal_adjective",
             "boolean_value_node": "child",
             "true_SEMENT": {
                 "comp_fxn": "adjective"
@@ -28,10 +29,32 @@ class BooleanConstructionsMixin:
             "false_SEMENT": {
                 "comp_fxn": "adjective"
             },
-            "adjective_SEMENT": "boolean_argument",
-            "nominal_SEMENT": "parent"
+            "main_comp_info": {
+                "comp_fxn": "predicate_and_proto_agent",
+                "predicate_SEMENT": "boolean_SEMENT",
+                "proto_agent_SEMENT": "parent"
+            },
+
         }"""
-        pass
+        # so this is the generic one
+        boolean_key = SEMENTUtil.get_key_rel(boolean_value_node)
+        if boolean_key.predicate == "_true_a_of":
+            boolean_argument = true_SEMENT
+        else:
+            boolean_argument = false_SEMENT
+
+        comp_fxn_obj = getattr(self, main_comp_info.composition_function_name)
+
+        # TODO: maybe make a dict version? ... this is the only function that can't be used in isolation without the PIGGY package
+        for param_name, param_val in main_comp_info.parameters.items():
+            if param_val == "boolean_SEMENT":
+                main_comp_info.parameters[param_name] = boolean_argument
+
+        return comp_fxn_obj(**main_comp_info.parameters)
+
+
+
+
 
     @SemCompTracer.trace
     def boolean_property(self, boolean_node_SEMENT: SEMENT, modified_SEMENT: SEMENT, true_SEMENT: SEMENT, false_SEMENT: SEMENT) -> SEMENT:
