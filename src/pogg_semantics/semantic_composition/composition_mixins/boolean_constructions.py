@@ -17,40 +17,40 @@ class BooleanConstructionsMixin:
         else:
             return self.adjective("_false_a_of")
 
-    @SemCompTracer.trace
-    def boolean_edge(self, boolean_value_node: SEMENT,
-                     true_SEMENT: SEMENT, false_SEMENT: SEMENT, main_comp_info):
-        """eatenberry": {
-            "comp_fxn": "boolean_edge",
-            "boolean_value_node": "child",
-            "true_SEMENT": {
-                "comp_fxn": "adjective"
-            },
-            "false_SEMENT": {
-                "comp_fxn": "adjective"
-            },
-            "main_comp_info": {
-                "comp_fxn": "predicate_and_proto_agent",
-                "predicate_SEMENT": "boolean_SEMENT",
-                "proto_agent_SEMENT": "parent"
-            },
-
-        }"""
-        # so this is the generic one
-        boolean_key = SEMENTUtil.get_key_rel(boolean_value_node)
-        if boolean_key.predicate == "_true_a_of":
-            boolean_argument = true_SEMENT
-        else:
-            boolean_argument = false_SEMENT
-
-        comp_fxn_obj = getattr(self, main_comp_info.composition_function_name)
-
-        # TODO: maybe make a dict version? ... this is the only function that can't be used in isolation without the PIGGY package
-        for param_name, param_val in main_comp_info.parameters.items():
-            if param_val == "boolean_SEMENT":
-                main_comp_info.parameters[param_name] = boolean_argument
-
-        return comp_fxn_obj(**main_comp_info.parameters)
+    # @SemCompTracer.trace
+    # def boolean_edge(self, boolean_value_node: SEMENT,
+    #                  true_SEMENT: SEMENT, false_SEMENT: SEMENT, main_comp_info):
+    #     """eatenberry": {
+    #         "comp_fxn": "boolean_edge",
+    #         "boolean_value_node": "child",
+    #         "true_SEMENT": {
+    #             "comp_fxn": "adjective"
+    #         },
+    #         "false_SEMENT": {
+    #             "comp_fxn": "adjective"
+    #         },
+    #         "main_comp_info": {
+    #             "comp_fxn": "predicate_and_proto_agent",
+    #             "predicate_SEMENT": "boolean_SEMENT",
+    #             "proto_agent_SEMENT": "parent"
+    #         },
+    #
+    #     }"""
+    #     # so this is the generic one
+    #     boolean_key = SEMENTUtil.get_key_rel(boolean_value_node)
+    #     if boolean_key.predicate == "_true_a_of":
+    #         boolean_argument = true_SEMENT
+    #     else:
+    #         boolean_argument = false_SEMENT
+    #
+    #     comp_fxn_obj = getattr(self, main_comp_info.composition_function_name)
+    #
+    #     # TODO: maybe make a dict version? ... this is the only function that can't be used in isolation without the PIGGY package
+    #     for param_name, param_val in main_comp_info.parameters.items():
+    #         if param_val == "boolean_SEMENT":
+    #             main_comp_info.parameters[param_name] = boolean_argument
+    #
+    #     return comp_fxn_obj(**main_comp_info.parameters)
 
 
 

@@ -50,60 +50,48 @@ class HeuristicConstructionsMixin:
 
         return self.semantic_algebra.op_scopal_quantifier(quant_sement, quantified_SEMENT)
 
-    # @SemCompTracer.trace
-    # def X_of_Y_is_Z(self, X_SEMENT: SEMENT, Y_SEMENT: SEMENT, Z_SEMENT: SEMENT):
-    #
-    #     if not SEMENTUtil.check_if_quantified(Y_SEMENT):
-    #         y_quant = self.quantify_generic(Y_SEMENT)
-    #     else:
-    #         y_quant = Y_SEMENT
-    #
-    #     # check if X_SEMENT has an ARG1 (e.g. _bag_n_of)
-    #     if "ARG1" in X_SEMENT.slots:
-    #         copula_subject = self.object_of_noun(X_SEMENT, y_quant)
-    #     # if not, introduce "of" preposition
-    #     else:
-    #         of = self.preposition("of_p")
-    #         of_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(of, y_quant, "ARG2")
-    #         copula_subject = self.semantic_algebra.op_non_scopal_argument_hook_slots(of_ARG2_plugged, X_SEMENT, "ARG1")
-    #
-    #     if not SEMENTUtil.check_if_quantified(copula_subject):
-    #         x_quant = self.quantify_generic(copula_subject)
-    #     else:
-    #         x_quant = copula_subject
-    #
-    #     if not SEMENTUtil.check_if_quantified(Z_SEMENT):
-    #         z_quant = self.quantify_generic(Z_SEMENT)
-    #     else:
-    #         z_quant = Z_SEMENT
-    #
-    #     return self.copula(x_quant, z_quant)
-    #
-    # @SemCompTracer.trace
-    # def X_is_Y_of_Z(self, X_SEMENT: SEMENT, Y_SEMENT: SEMENT, Z_SEMENT: SEMENT):
-    #
-    #     if not SEMENTUtil.check_if_quantified(Z_SEMENT):
-    #         z_quant = self.quantify_generic(Z_SEMENT)
-    #     else:
-    #         z_quant = Z_SEMENT
-    #
-    #     # check if Y_SEMENT has an ARG1 (e.g. _bag_n_of)
-    #     if "ARG1" in Y_SEMENT.slots:
-    #         copula_object = self.object_of_noun(Y_SEMENT, z_quant)
-    #     # if not, introduce "of" preposition
-    #     else:
-    #         of = self.preposition("of_p")
-    #         of_ARG2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(of, z_quant, "ARG2")
-    #         copula_object = self.semantic_algebra.op_non_scopal_argument_hook_slots(of_ARG2_plugged, Y_SEMENT, "ARG1")
-    #
-    #     if not SEMENTUtil.check_if_quantified(X_SEMENT):
-    #         x_quant = self.quantify_generic(X_SEMENT)
-    #     else:
-    #         x_quant = X_SEMENT
-    #
-    #     if not SEMENTUtil.check_if_quantified(copula_object):
-    #         y_quant = self.quantify_generic(copula_object)
-    #     else:
-    #         y_quant = Y_SEMENT
-    #
-    #     return self.copula(x_quant, y_quant)
+
+    @SemCompTracer.trace
+    def modifier_generic(self, modifier_SEMENT: SEMENT, modified_SEMENT: SEMENT) -> SEMENT:
+
+        modifier_key_rel = SEMENTUtil.get_key_rel(modifier_SEMENT)
+
+        # if top level index is e and pred specifies _a_ or _v_
+        if (modifier_SEMENT.index.startswith("e") or
+                ("_a_" in modifier_key_rel.predicate or "_v_" in modifier_key_rel.predicate)):
+            # adjective?
+            if "_a_" in modifier_key_rel.predicate:
+                return self.adjective_as_modifier(modifier_SEMENT, modified_SEMENT)
+            # something else?
+            else:
+                # fill the highest slot
+                try:
+                    highest_slot = sorted(modifier_SEMENT.slots.keys())[-1]
+                except IndexError:
+                    raise IndexError("No slots available to fill for generic modifier")
+
+
+                if highest_slot == "ARG3":
+                    # if the key_rel has more than 3 ARGs, one has been filled so use relative
+                    if len(modifier_key_rel.args.keys()) > 4:
+                        return self.relative_predicate_and_oblique(modifier_SEMENT, modified_SEMENT)
+                    else:
+                        return self.modifying_participle_and_oblique(modifier_SEMENT, modified_SEMENT)
+                elif highest_slot == "ARG2":
+                    # if the key_rel has more than 2 ARGs, one has been filled so use relative
+                    if len(modifier_key_rel.args.keys()) > 3:
+                        return self.relative_predicate_and_proto_patient(modifier_SEMENT, modified_SEMENT)
+                    else:
+                        return self.modifying_participle_and_proto_patient(modifier_SEMENT, modified_SEMENT)
+                else:
+                    # if the key_rel has more than 2 ARGs, one has been filled so use relative
+                    if len(modifier_key_rel.args.keys()) > 2:
+                        return self.relative_predicate_and_proto_agent(modifier_SEMENT, modified_SEMENT)
+                    else:
+                        return self.modifying_participle_and_proto_agent(modifier_SEMENT, modified_SEMENT)
+        else:
+            # if key_rel of modifier is _n_, do compound noun, otherwise compound generic
+            if "_n_" in modifier_key_rel.predicate:
+                return self.compound_noun(modified_SEMENT, modifier_SEMENT)
+            else:
+                return self.compound_generic(modified_SEMENT, modifier_SEMENT)
