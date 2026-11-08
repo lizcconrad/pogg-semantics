@@ -79,8 +79,24 @@ class SEMENT(mrs.MRS):
 
         super().__init__(top, index, unique_rels, hcons, icons, variables, lnk, surface, identifier)
 
-        self.slots = slots
-        self.eqs = eqs
+        if slots is None:
+            self.slots = {}
+        else:
+            self.slots = slots
 
-        self.embedded_slots = embedded_slots
+        if eqs is None:
+            self.eqs = []
+        else:
+            self.eqs = eqs
+
+        # if hcons is None:
+        #     self.hcons = []
+        # else:
+        #     self.hcons = hcons
+
+        if embedded_slots is None:
+            self.embedded_slots = {}
+        else:
+            self.embedded_slots = embedded_slots
+
         # self.embedder_slot = embedder_slot

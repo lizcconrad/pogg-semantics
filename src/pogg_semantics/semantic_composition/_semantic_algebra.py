@@ -3,7 +3,7 @@ The semantic_algebra module contains the SemanticAlgebra class which contains me
 
 [See usage examples here.](project:/usage_nbs/pogg/semantic_composition/SemanticAlgebra_usage.ipynb)
 """
-
+import copy
 from pathlib import Path
 from delphin import mrs
 from pogg_semantics.my_delphin import SEMENT
@@ -32,6 +32,65 @@ class SemanticAlgebra:
             self.composition_config = POGGCompositionConfig(composition_config)
         else:
             self.composition_config = composition_config
+
+    def _prevent_variable_collisions(self, functor, argument):
+        for var in functor.variables:
+            if var in argument.variables:
+                replacement_var = self.composition_config.var_labeler.get_var_name(var[0])
+                argument.variables[replacement_var] = argument.variables[var]
+                argument.variables.pop(var)
+
+                if argument.index == var:
+                    argument.index = replacement_var
+
+                for ep in copy.copy(argument.rels):
+                    replace = False
+                    new_label = ep.label
+                    copied_args = copy.copy(ep.args)
+
+                    if ep.label == var:
+                        new_label = replacement_var
+                        replace = True
+
+                    for arg_name, arg in copied_args.items():
+                        if var == arg:
+                            copied_args[arg_name] = replacement_var
+                            replace = True
+
+                    if replace:
+                        new_ep = mrs.EP(ep.predicate, new_label, copied_args)
+                        argument.rels.remove(ep)
+                        # argument.predications.remove(ep)
+                        argument.rels.append(new_ep)
+                        # argument.predications.append(new_ep)
+
+                for eq in copy.copy(argument.eqs):
+                    if var == eq[0]:
+                        argument.eqs.remove(eq)
+                        argument.eqs.append((replacement_var, eq[1]))
+                    elif var == eq[1]:
+                        argument.eqs.remove(eq)
+                        argument.eqs.append((eq[0], replacement_var))
+
+                for hcon in copy.copy(argument.hcons):
+                    new_hi = hcon.hi
+                    new_lo = hcon.lo
+
+                    if var == hcon.hi:
+                        new_hi = replacement_var
+                    elif var == hcon.lo:
+                        new_lo = replacement_var
+
+                    argument.hcons.remove(hcon)
+                    argument.hcons.append(mrs.HCons(new_hi, "qeq", new_lo))
+
+                for slot_name, slot_val in argument.slots.items():
+                    if var == slot_val:
+                        argument.slots[slot_name] = replacement_var
+                for emb_slot_name, emb_slot_val in argument.embedded_slots:
+                    if var == emb_slot_val:
+                        argument.embedded_slots[emb_slot_name] = replacement_var
+
 
 
     def _get_slots(self, ep):
@@ -217,6 +276,8 @@ class SemanticAlgebra:
         # RES.HCONS = FUNC.HCONS + ARG.HCONS
         # RES.ICONS = FUNC.HCONS + ARG.HCONS
 
+        self._prevent_variable_collisions(functor, argument)
+
         result_top = argument.top
         result_index = argument.index
 
@@ -280,6 +341,8 @@ class SemanticAlgebra:
 
         # RES.HCONS = FUNC.HCONS + ARG.HCONS
         # RES.ICONS = FUNC.ICONS + ARG.ICONS
+
+        self._prevent_variable_collisions(functor, argument)
 
         result_top = functor.top
         result_index = functor.index
@@ -346,6 +409,8 @@ class SemanticAlgebra:
         # RES.HCONS = FUNC.HCONS + ARG.HCONS + FUNC.slot_label =q ARG.TOP
         # RES.ICONS = FUNC.ICONS + ARG.ICONS
 
+        self._prevent_variable_collisions(functor, argument)
+
         result_top = functor.top
         result_index = argument.index
 
@@ -411,6 +476,8 @@ class SemanticAlgebra:
 
         # RES.HCONS = FUNC.HCONS + ARG.HCONS + FUNC.slot_label =q ARG.TOP
         # RES.ICONS = FUNC.ICONS + ARG.ICONS
+
+        self._prevent_variable_collisions(functor, argument)
 
         result_top = functor.top
         result_index = functor.index
@@ -481,6 +548,8 @@ class SemanticAlgebra:
         # RES.HCONS = FUNC.HCONS + ARG.HCONS + FUNC.slot_label =q ARG.TOP
         # RES.ICONS = FUNC.ICONS + ARG.ICONS
 
+        self._prevent_variable_collisions(functor, argument)
+
         result_top = functor.top
         result_index = functor.index
 
@@ -546,6 +615,8 @@ class SemanticAlgebra:
         # RES.HCONS = FUNC.HCONS + ARG.HCONS + FUNC.RSTR =q ARG.TOP
         # RES.ICONS = FUNC.ICONS + ARG.ICONS
 
+        self._prevent_variable_collisions(functor, argument)
+
         result_top = functor.top
         result_index = functor.index
 
@@ -577,6 +648,8 @@ class SemanticAlgebra:
 
     @SemAlgTracer.trace
     def op_raising(self, functor, argument, slot_label, raised_slot_label):
+
+        self._prevent_variable_collisions(functor, argument)
 
         result_top = functor.top
         result_index = functor.index
@@ -621,6 +694,9 @@ class SemanticAlgebra:
     @SemAlgTracer.trace
     # not sure i need the arg hook slots version
     def op_embedded_non_scopal_functor_hook_slots(self, functor, argument, slot_label):
+
+        self._prevent_variable_collisions(functor, argument)
+
         result_top = functor.top
         result_index = functor.index
 
@@ -654,6 +730,8 @@ class SemanticAlgebra:
 
     @SemAlgTracer.trace
     def op_control(self, functor, argument, slot_label, controller_slot_label, controlled_slot_label):
+
+        self._prevent_variable_collisions(functor, argument)
 
         result_top = functor.top
         result_index = functor.index
@@ -691,6 +769,19 @@ class SemanticAlgebra:
                       result_variables, embedded_slots=result_embedded_slots)
 
     @SemAlgTracer.trace
+    def op_embed_coordinand(self, functor, argument, slot_label, coordinand_slot_label):
+        # pretty sure I can just reuse regular non_scopal_functor_hook_slots... so i will <3
+        coord_plus_coordinand = self.op_non_scopal_functor_hook_slots(functor, argument, slot_label)
+        # create artificial "ARGcoord" ... put in slots list, add EQ between coordinand slot value and ARGcoord
+        if "ARGcoord" not in coord_plus_coordinand.slots:
+            coord_plus_coordinand.slots["ARGcoord"] = argument.slots[coordinand_slot_label]
+        else:
+            coord_plus_coordinand.eqs.append((coord_plus_coordinand.slots["ARGcoord"], argument.slots[coordinand_slot_label]))
+
+        return coord_plus_coordinand
+
+
+    @SemAlgTracer.trace
     def prepare_for_generation(self, sement):
         """
         Prepare the given SEMENT for generation.
@@ -724,6 +815,13 @@ class SemanticAlgebra:
 
         # duplicate sement to avoid editing the original
         unprepared_sement = SEMENTUtil.duplicate_sement(sement)
+
+        # pop all dummy varprops
+        for var, var_props in unprepared_sement.variables.items():
+            for prop_name in list(var_props.keys()):
+                prop_val = var_props[prop_name]
+                if prop_val == "dummy":
+                    var_props.pop(prop_name)
 
 
         # TODO: i can't get "the cat probably sleeps" bc the top lvl INDEX is i
@@ -772,7 +870,15 @@ class SemanticAlgebra:
                 has_gtop = True
 
         if not has_gtop:
-            gtop = self.composition_config.var_labeler.get_var_name("h")
+            gtop = None
+            while gtop is None:
+                gtop = self.composition_config.var_labeler.get_var_name("h")
+                if gtop in sement.variables:
+                    gtop = None
+                else:
+                    break
+
+
             new_hcon = mrs.HCons(gtop, "qeq", e_type_sement.top)
 
             # change top and add hcon

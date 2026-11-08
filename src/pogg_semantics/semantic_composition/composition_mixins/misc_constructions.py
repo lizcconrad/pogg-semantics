@@ -66,6 +66,9 @@ class MiscConstructionsMixin:
         else:
             quantify_non_head_noun = non_head_SEMENT
 
+        # add to blog adding "sg" in universal_singular pass
+        SEMENTUtil.add_intrinsic_variable_property(quantify_non_head_noun, "NUM", "dummy")
+
         arg2_plugged = self.semantic_algebra.op_non_scopal_functor_hook_slots(compound, quantify_non_head_noun,
                                                                               "ARG2")
         # plug ARG1 of compound (head)

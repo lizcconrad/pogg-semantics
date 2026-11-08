@@ -1,5 +1,24 @@
 from functools import wraps
 
+class SemProcessingTracer:
+    fxns_called = {}
+
+    @staticmethod
+    def trace(f):
+        @wraps(f)
+        def fxn_tracker(*args, **kwargs):
+            if f.__name__ not in SemProcessingTracer.fxns_called:
+                  SemProcessingTracer.fxns_called[f.__name__] = 1
+            else:
+                SemProcessingTracer.fxns_called[f.__name__] += 1
+            return f(*args, **kwargs)
+        return fxn_tracker
+
+    @staticmethod
+    def reset_fxns_called():
+        SemProcessingTracer.fxns_called = {}
+
+
 class SemCompTracer:
     fxns_called = {}
 

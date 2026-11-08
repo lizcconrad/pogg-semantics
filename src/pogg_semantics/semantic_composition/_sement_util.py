@@ -85,6 +85,7 @@ class SEMENTUtil:
         new_rels = copy.deepcopy(sement.rels)
         new_slots = copy.deepcopy(sement.slots)
         new_eqs = copy.deepcopy(sement.eqs)
+        new_embedded_slots = copy.deepcopy(sement.embedded_slots)
         new_variables = copy.deepcopy(sement.variables)
 
         # TODO: ignoring lnk, surface, and identifier for now
@@ -94,7 +95,7 @@ class SEMENTUtil:
         # for each element in icons, add to list
         new_icons = [i for i in sement.icons]
 
-        return SEMENT(new_top, new_index, new_rels, new_slots, new_eqs, new_hcons, new_icons, new_variables, None, None, None)
+        return SEMENT(new_top, new_index, new_rels, new_slots, new_eqs, new_hcons, new_icons, new_variables, new_embedded_slots, None, None)
 
     @staticmethod
     def group_equalities(equalities):
