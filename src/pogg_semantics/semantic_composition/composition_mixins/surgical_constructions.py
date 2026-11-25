@@ -16,6 +16,7 @@ class SurgicalConstructionsMixin:
     The `SurgicalConstructionsMixin` contains functions for composing new SEMENTs using two input SEMENTs.
     """
 
+    @SemCompTracer.trace
     def dequantify(self, quantified_SEMENT: SEMENT) -> (SEMENT, SEMENT):
         duplicated_SEMENT = SEMENTUtil.duplicate_sement(quantified_SEMENT)
 
@@ -52,6 +53,7 @@ class SurgicalConstructionsMixin:
 
         return new_quant, duplicated_SEMENT
 
+    @SemCompTracer.trace
     def extract_predicate_collection(self, given_SEMENT: SEMENT, key_EP: mrs.EP, working_EPs=None,
                                      working_HCons=None) -> SEMENT:
         given_SEMENT = SEMENTUtil.overwrite_eqs(given_SEMENT)
@@ -139,6 +141,7 @@ class SurgicalConstructionsMixin:
                               None, extracted_variables, None)
         return dummy_SEMENT
 
+    @SemCompTracer.trace
     def extract_semantic_role_of_predicate(self, original_SEMENT: SEMENT, role: str) -> (SEMENT, SEMENT):
         updated_SEMENT = SEMENTUtil.duplicate_sement(original_SEMENT)
         updated_SEMENT = SEMENTUtil.overwrite_eqs(updated_SEMENT)
@@ -186,6 +189,7 @@ class SurgicalConstructionsMixin:
 
         return extracted_SEMENT, updated_SEMENT
 
+    @SemCompTracer.trace
     def replace_role_of_predicate(self, original_SEMENT: SEMENT, replacement_SEMENT: SEMENT, role: str) -> SEMENT:
         extracted_SEMENT, updated_SEMENT = self.extract_semantic_role_of_predicate(original_SEMENT, role)
 
@@ -196,6 +200,7 @@ class SurgicalConstructionsMixin:
 
         return self.semantic_algebra.op_non_scopal_functor_hook_slots(updated_SEMENT, quant_replacement, role)
 
+    @SemCompTracer.trace
     def find_isomorphic_arguments(self, first_SEMENT: SEMENT, second_SEMENT: SEMENT):
         first_key = SEMENTUtil.get_key_rel(first_SEMENT)
         second_key = SEMENTUtil.get_key_rel(second_SEMENT)

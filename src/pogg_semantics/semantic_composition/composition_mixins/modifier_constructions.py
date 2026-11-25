@@ -33,8 +33,6 @@ class ModifierConstructionsMixin:
         | ---- | ----------- |
         | `SEMENT` | SEMENT composed of an adjective and the elements it modifies |
         """
-        # CATEGORY: BASIC
-
         return self.semantic_algebra.op_non_scopal_argument_hook_slots(adjectival_modifier_SEMENT, nominal_modified_SEMENT, "ARG1")
 
     @SemCompTracer.trace
